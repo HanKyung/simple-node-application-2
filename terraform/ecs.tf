@@ -70,8 +70,8 @@ resource "aws_ecs_task_definition" "aws-ecs-task" {
   network_mode             = "awsvpc"
   memory                   = "512"
   cpu                      = "256"
-  execution_role_arn       = aws_iam_role.ecsTaskExecutionRole.arn
-  task_role_arn            = aws_iam_role.ecsTaskExecutionRole.arn
+  execution_role_arn       = "arn:aws:iam::255945442255:role/ecsTaskExecutionRole" # aws_iam_role.ecsTaskExecutionRole.arn
+  task_role_arn            = "arn:aws:iam::255945442255:role/ecsTaskExecutionRole" # aws_iam_role.ecsTaskExecutionRole.arn
 
   tags = {
     Name        = "${var.app_name}-ecs-td"
@@ -84,18 +84,26 @@ data "aws_ecs_task_definition" "main" {
 }
 
 
+data "aws_subnets" "existing_subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [aws_vpc.aws-vpc.id]
+  }
+}
 resource "aws_ecs_service" "aws-ecs-service" {
   name                 = "stephen-${var.app_name}-${var.app_environment}-ecs-service"
   cluster              = aws_ecs_cluster.aws-ecs-cluster.id
   task_definition      = "${aws_ecs_task_definition.aws-ecs-task.family}:${max(aws_ecs_task_definition.aws-ecs-task.revision, data.aws_ecs_task_definition.main.revision)}"
   launch_type          = "FARGATE"
-  scheduling_strategy  = "REPLICA"
   desired_count        = 1
-  force_new_deployment = true
+  platform_version = "LATEST"
+  # scheduling_strategy  = "REPLICA"
+  # force_new_deployment = true
+
 
   network_configuration {
-    subnets          = aws_subnet.private.*.id
-    assign_public_ip = false
+    subnets          =  aws_subnet.public.*.id # aws_subnet.private.*.id
+    assign_public_ip = true
     security_groups = [
       aws_security_group.service_security_group.id,
       aws_security_group.load_balancer_security_group.id
