@@ -1,41 +1,80 @@
-data "aws_vpc" "selected_vpc" {
-  filter {
-    name   = "tag:Name"
-    values = [var.vpc_name]
-  }
-}
+# data "aws_vpc" "selected_vpc" {
+#   filter {
+#     name   = "tag:Name"
+#     values = [var.vpc_name]
+#   }
+# }
 
-data "aws_subnet" "selected_subnet" {
-  filter {
-    name   = "tag:Name"
-    values = [var.subnet_name]
+# data "aws_subnet" "selected_subnet" {
+#   filter {
+#     name   = "tag:Name"
+#     values = [var.subnet_name]
+#   }
+# }
+
+
+# Fetch subnets with 'public' tag
+# data "aws_subnet" "public" {
+#   filter {
+#     name   = "vpc-id"
+#     values = [data.aws_vpc.selected_vpc.id]
+#   }
+
+#   filter {
+#     name   = "tag:Name"
+#     values = ["*public-us-east-1a*"]
+#   }
+# }
+
+# data "aws_subnet" "public2" {
+#   filter {
+#     name   = "vpc-id"
+#     values = [data.aws_vpc.selected_vpc.id]
+#   }
+
+#   filter {
+#     name   = "tag:Name"
+#     values = ["*public-us-east-1b*"]
+#   }
+# }
+
+
+
+
+resource "aws_vpc" "aws-vpc" {
+  cidr_block           = "10.10.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  tags = {
+    Name        = "${var.app_name}-vpc"
+    Environment = var.app_environment
   }
 }
 
 # Created with module
-module "ec2_instance" {
-  source = "terraform-aws-modules/ec2-instance/aws"
+# module "ec2_instance" {
+#   source = "terraform-aws-modules/ec2-instance/aws"
 
-  name = "${var.ec2_name}-${var.env}"
+#   name = "${var.ec2_name}-${var.env}"
 
-  instance_type               = var.instance_type
-  key_name                    = var.key_name
-  monitoring                  = true
-  associate_public_ip_address = true
-  vpc_security_group_ids      = [aws_security_group.my_sg.id]
-  subnet_id                   = data.aws_subnet.selected_subnet.id
-  user_data                   = templatefile("${path.module}/user_data.sh", {})
+#   instance_type               = var.instance_type
+#   key_name                    = var.key_name
+#   monitoring                  = true
+#   associate_public_ip_address = true
+#   vpc_security_group_ids      = [aws_security_group.my_sg.id]
+#   subnet_id                   = data.aws_subnet.selected_subnet.id
+#   user_data                   = templatefile("${path.module}/user_data.sh", {})
 
-  tags = {
-    Terraform   = "true"
-    Environment = var.env
-    Name        = "${var.ec2_name}-${var.env}-module"
-  }
-}
+#   tags = {
+#     Terraform   = "true"
+#     Environment = var.env
+#     Name        = "${var.ec2_name}-${var.env}-module"
+#   }
+# }
 
 resource "aws_security_group" "my_sg" {
   name   = var.sg_name
-  vpc_id = data.aws_vpc.selected_vpc.id # var.vpc_id
+  vpc_id = aws_vpc.aws-vpc.id # var.vpc_id
 
   ingress {
     from_port   = 22
