@@ -19,7 +19,7 @@ const ENV = 'DEV';
 const app = express();
 app.get('/', (req, res) => {
   res.statusCode = 200;
-  const msg = 'Hello from Luqman!';
+  const msg = 'Hello from Stephen!';
   res.send(msg);
 });
 
@@ -31,7 +31,7 @@ app.get('/test', (req, res) => {
 
 app.get('/welcome', (req, res) => {
   res.statusCode = 200;
-  const msg = 'Hello from /welcome Luqmans Node!';
+  const msg = 'Hello from /welcome Stephen Node!';
   res.send(msg);
 });
 
